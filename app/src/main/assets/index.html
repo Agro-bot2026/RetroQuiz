@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RetroQuiz - El Juego del Millón</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0a0a2e;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.stars {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+}
+
+.game-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 500px;
+    padding: 15px;
+}
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* MENU */
+.menu-screen {
+    text-align: center;
+}
+.menu-screen h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5em;
+    background: linear-gradient(180deg, #ffd700, #ff8c00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    margin-bottom: 5px;
+}
+.menu-screen .subtitle {
+    color: #888;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+.menu-logo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px;
+    background: linear-gradient(135deg, #ffd700, #ff6b00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+    box-shadow: 0 0 40px rgba(255,215,0,0.3);
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%,100% { transform: scale(1); box-shadow: 0 0 40px rgba(255,215,0,0.3); }
+    50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(255,215,0,0.5); }
+}
+.btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.btn:hover { transform: scale(1.02); }
+.btn:active { transform: scale(0.98); }
+.btn-play {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    font-size: 1.3em;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.3);
+}
+.btn-categories {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+.btn-leaderboard {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+/* CATEGORY GRID */
+.category-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.cat-btn {
+    padding: 20px 10px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9em;
+}
+.cat-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.05); }
+.cat-btn:active { transform: scale(0.95); }
+.cat-btn .emoji { font-size: 2em; display: block; margin-bottom: 5px; }
+.cat-btn.selected {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,140,0,0.2));
+}
+
+/* GAME */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+.game-header .question-num {
+    color: #ffd700;
+    font-weight: bold;
+}
+.game-header .score {
+    color: #ffd700;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2em;
+}
+
+.question-box {
+    background: rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 15px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid rgba(255,215,0,0.2);
+}
+.question-box p {
+    color: white;
+    font-size: 1.15em;
+    line-height: 1.5;
+}
+
+.options-grid {
+    display: grid;
+    gap: 10px;
+}
+.option-btn {
+    padding: 15px;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+}
+.option-btn .letter {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+.option-btn:hover { background: rgba(255,255,255,0.15); }
+.option-btn.correct { 
+    border-color: #00e676; 
+    background: rgba(0,230,118,0.2);
+    animation: flashGreen 0.5s;
+}
+.option-btn.wrong { 
+    border-color: #ff1744; 
+    background: rgba(255,23,68,0.2);
+    animation: flashRed 0.5s;
+}
+@keyframes flashGreen { 0%,100%{background:rgba(0,230,118,0.2)} 50%{background:rgba(0,230,118,0.4)} }
+@keyframes flashRed { 0%,100%{background:rgba(255,23,68,0.2)} 50%{background:rgba(255,23,68,0.4)} }
+.option-btn:disabled { cursor: default; opacity: 0.7; }
+
+/* LIFELINES */
+.lifelines {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+    justify-content: center;
+}
+.lifeline-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    color: #aaa;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.3s;
+}
+.lifeline-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+.lifeline-btn.used { opacity: 0.3; cursor: default; }
+
+/* RESULT */
+.result-screen {
+    text-align: center;
+}
+.result-screen .result-icon { font-size: 4em; margin-bottom: 15px; }
+.result-screen h2 { color: white; font-size: 1.8em; margin-bottom: 10px; }
+.result-screen p { color: #aaa; font-size: 1.1em; margin-bottom: 5px; }
+.result-screen .final-score {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3em;
+    color: #ffd700;
+    margin: 15px 0;
+}
+
+/* PRIZE LADDER */
+.prize-ladder {
+    position: fixed;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.8);
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 0.7em;
+    z-index: 10;
+}
+.prize-step {
+    padding: 3px 10px;
+    margin: 2px 0;
+    border-radius: 4px;
+    color: #666;
+    text-align: right;
+}
+.prize-step.current { color: #ffd700; background: rgba(255,215,0,0.15); }
+.prize-step.milestone { color: #ff8c00; }
+
+@media (max-width: 400px) {
+    .menu-screen h1 { font-size: 1.8em; }
+    .question-box p { font-size: 1em; }
+    .prize-ladder { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="game-container">
+
+<!-- MENU -->
+<div id="menuScreen" class="screen active menu-screen">
+    <div class="menu-logo">🎮</div>
+    <h1>RETRO QUIZ</h1>
+    <div class="subtitle">🏆 El Juego del Millón Gamer</div>
+    <button class="btn btn-play" onclick="showCategories()">🎯 JUGAR</button>
+    <button class="btn btn-categories" onclick="showCategories()">📂 CATEGORÍAS</button>
+</div>
+
+<!-- CATEGORIES -->
+<div id="catScreen" class="screen">
+    <div class="menu-screen" style="padding-top:30px">
+        <h2 style="color:white;margin-bottom:15px;font-size:1.2em">ELEGÍ TU CATEGORÍA</h2>
+        <div class="category-grid">
+            <div class="cat-btn selected" data-cat="all" onclick="selectCategory('all',this)">
+                <span class="emoji">🎮</span> Todas
+            </div>
+            <div class="cat-btn" data-cat="nes" onclick="selectCategory('nes',this)">
+                <span class="emoji">🕹️</span> NES / SNES
+            </div>
+            <div class="cat-btn" data-cat="play" onclick="selectCategory('play',this)">
+                <span class="emoji">🎯</span> PlayStation
+            </div>
+            <div class="cat-btn" data-cat="arcade" onclick="selectCategory('arcade',this)">
+                <span class="emoji">👾</span> Arcade
+            </div>
+            <div class="cat-btn" data-cat="sega" onclick="selectCategory('sega',this)">
+                <span class="emoji">💎</span> Sega
+            </div>
+            <div class="cat-btn" data-cat="n64" onclick="selectCategory('n64',this)">
+                <span class="emoji">🔲</span> N64 / GC
+            </div>
+            <div class="cat-btn" data-cat="pc" onclick="selectCategory('pc',this)">
+                <span class="emoji">💻</span> PC Gaming
+            </div>
+            <div class="cat-btn" data-cat="retro" onclick="selectCategory('retro',this)">
+                <span class="emoji">📼</span> Cultura Retro
+            </div>
+        </div>
+        <button class="btn btn-play" onclick="startGame()" style="margin-top:15px">✅ EMPEZAR</button>
+        <button class="btn btn-categories" onclick="showMenu()" style="background:#333">↩ VOLVER</button>
+    </div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="screen">
+    <div class="prize-ladder" id="prizeLadder"></div>
+    <div class="game-header">
+        <span class="question-num" id="questionNum">Pregunta 1/15</span>
+        <span class="score" id="scoreDisplay">$0</span>
+    </div>
+    <div id="categoryDisplay" style="color:#888;font-size:0.85em;text-align:center;margin-bottom:8px"></div>
+    <div class="question-box">
+        <p id="questionText">Cargando...</p>
+    </div>
+    <div class="options-grid" id="optionsContainer"></div>
+    <div class="lifelines">
+        <button class="lifeline-btn" id="fiftyBtn" onclick="useFifty()">50/50</button>
+        <button class="lifeline-btn" id="phoneBtn" onclick="usePhone()">📞 Llamada</button>
+        <button class="lifeline-btn" id="audienceBtn" onclick="useAudience()">👥 Público</button>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen" class="screen result-screen">
+    <div class="result-icon" id="resultIcon">🏆</div>
+    <h2 id="resultTitle">¡Felicitaciones!</h2>
+    <p id="resultSubtitle">Ganaste:</p>
+    <div class="final-score" id="finalScore">$1.000.000</div>
+    <p id="resultDetail"></p>
+    <button class="btn btn-play" onclick="showMenu()">🔄 JUGAR DE NUEVO</button>
+</div>
+
+</div>
+
+<script>
+// ─── PRIZE LADDER ───
+const PRIZES = [
+    '$100', '$200', '$300', '$500', '$1.000',
+    '$2.000', '$4.000', '$8.000', '$16.000', '$32.000',
+    '$64.000', '$125.000', '$250.000', '$500.000', '$1.000.000'
+];
+const MILESTONES = [4, 9, 14];
+
+// ─── QUESTIONS DATABASE ───
+const QUESTIONS = [
+    // NES / SNES
+    { cat:'nes', q:'¿Cuál era el nombre original del fontanero Mario antes de llamarse Mario?', o:['Jumpman','Luigi','Plumber Bob','Mr.Video'], c:0 },
+    { cat:'nes', q:'¿En qué año se lanzó Super Mario Bros para NES?', o:['1983','1985','1987','1990'], c:1 },
+    { cat:'nes', q:'¿Cómo se llama la princesa que Mario rescata?', o:['Peach','Daisy','Rosalina','Toadstool'], c:3 },
+    { cat:'nes', q:'¿Qué empresa creó la NES?', o:['Sega','Sony','Nintendo','Atari'], c:2 },
+    { cat:'nes', q:'¿Cuál fue el primer juego de la saga The Legend of Zelda?', o:['Link\'s Awakening','Ocarina of Time','The Legend of Zelda','A Link to the Past'], c:2 },
+    { cat:'nes', q:'¿Qué poder da la flor de fuego en Mario?', o:['Volar','Lanzar bolas de fuego','Ser invencible','Crecer'], c:1 },
+    { cat:'nes', q:'¿Cuántos世界 (mundos) tiene Super Mario Bros original?', o:['6','8','12','16'], c:1 },
+    { cat:'nes', q:'¿Qué personaje de Nintendo es un dinosaurio verde?', o:['Bowser','Wario','Yoshi','Donkey Kong'], c:2 },
+    { cat:'nes', q:'¿En Mega Man, cómo se llama el perro robot?', o:['Rush','Beat','Eddie','Tango'], c:0 },
+    { cat:'nes', q:'¿En qué juego aparece el "Konami Code" por primera vez?', o:['Contra','Gradius','Castlevania','Pro Evolution Soccer'], c:1 },
+    { cat:'nes', q:'¿De qué color vestía originalmente Donkey Kong?', o:['Marrón','Gris','Rojo','Negro'], c:1 },
+    { cat:'nes', q:'¿Cuál es el nombre real de la princesa Peach?', o:['Princesa Toadstool','Princesa Daisy','Princesa Rosalina','Princesa Mushroom'], c:0 },
+    { cat:'nes', q:'¿En qué país se creó Nintendo?', o:['China','Corea','Japón','Taiwán'], c:2 },
+    { cat:'nes', q:'¿Cuál era la contraseña para ir al mundo 2 en el Mario Bros original?', o:['No existía','A+B+Start','Up+Down+Select','524B'], c:0 },
+    { cat:'nes', q:'¿Qué instrumento usaba el personaje de Simon Belmont?', o:['Espada','Martillo','Látigo','Hacha'], c:2 },
+
+    // PlayStation
+    { cat:'play', q:'¿En qué año se lanzó la PlayStation original en Japón?', o:['1993','1994','1995','1996'], c:1 },
+    { cat:'play', q:'¿Cuál fue el primer juego de la saga Metal Gear Solid?', o:['Metal Gear','Metal Gear Solid','Snake Eater','Guns of the Patriots'], c:1 },
+    { cat:'play', q:'¿Cuántos CD-ROMs ocupaba Final Fantasy VII original?', o:['2','3','4','6'], c:1 },
+    { cat:'play', q:'¿Cómo se llama el protagonista de God of War?', o:['Ares','Zeus','Kratos','Hades'], c:2 },
+    { cat:'play', q:'¿Qué empresa creó PlayStation?', o:['Nintendo','Microsoft','Sega','Sony'], c:3 },
+    { cat:'play', q:'¿En qué juego de PS2 apareció por primera vez San Andreas?', o:['GTA III','GTA Vice City','GTA San Andreas','GTA IV'], c:2 },
+    { cat:'play', q:'¿Cuál es el nombre del fantasma en Pac-Man?', o:['Blinky','Winky','Linky','Stinky'], c:0 },
+    { cat:'play', q:'¿Qué serie de PlayStation protagoniza Nathan Drake?', o:['Tomb Raider','Uncharted','The Last of Us','Infamous'], c:1 },
+    { cat:'play', q:'¿En qué juego de PS4 aparece el personaje Aloy?', o:['God of War','Horizon Zero Dawn','The Witcher 3','Days Gone'], c:1 },
+    { cat:'play', q:'¿Cuál es el juego más vendido de PS2?', o:['GTA San Andreas','Final Fantasy X','Gran Turismo 3','Kingdom Hearts'], c:0 },
+    { cat:'play', q:'¿Qué significa la X en PlayStation?', o:['Equis','Cerrar','Confirmar','Variable'], c:2 },
+    { cat:'play', q:'¿En qué año salió la PS3?', o:['2004','2005','2006','2007'], c:2 },
+    { cat:'play', q:'¿Cómo se llama el estudio creador de The Last of Us?', o:['Naughty Dog','Santa Monica','Insomniac','Sucker Punch'], c:0 },
+    { cat:'play', q:'¿Qué juego de PS1 introdujo a Lara Croft?', o:['Uncharted','Tomb Raider','Legacy of Kain','Fear Effect'], c:1 },
+    { cat:'play', q:'¿Cuál era el mando original de PS1?', o:['DualShock','Dual Analog','PlayStation Controller','Sixaxis'], c:2 },
+
+    // Arcade
+    { cat:'arcade', q:'¿En qué año salió Pac-Man?', o:['1978','1980','1982','1984'], c:1 },
+    { cat:'arcade', q:'¿Cuál es el juego más taquillero de la historia de los arcades?', o:['Pac-Man','Space Invaders','Street Fighter II','Donkey Kong'], c:2 },
+    { cat:'arcade', q:'¿Cuántos puntos vale una manzana en el Pac-Man original?', o:['100','200','500','1000'], c:0 },
+    { cat:'arcade', q:'¿En qué juego arcade aparece Ryu?', o:['Mortal Kombat','Street Fighter','King of Fighters','Fatal Fury'], c:1 },
+    { cat:'arcade', q:'¿Cuál es el nombre del hada mala en Ghosts \'n Goblins?', o:['Astaroth','Lucifer','Satan','Red Arremer'], c:3 },
+    { cat:'arcade', q:'¿Qué empresa creó Street Fighter?', o:['SNK','Namco','Capcom','Sega'], c:2 },
+    { cat:'arcade', q:'¿Cuántos jugadores pueden jugar simultáneamente en The Simpsons Arcade?', o:['2','3','4','6'], c:2 },
+    { cat:'arcade', q:'¿Cuál fue el primer juego de lucha en usar movimientos especiales?', o:['Street Fighter','Karate Champ','Yie Ar Kung-Fu','Mortal Kombat'], c:0 },
+
+    // Sega
+    { cat:'sega', q:'¿Cuál es la mascota oficial de Sega?', o:['Mario','Crash Bandicoot','Sonic','Spyro'], c:2 },
+    { cat:'sega', q:'¿En qué año se lanzó la Sega Genesis (Mega Drive)?', o:['1987','1988','1989','1990'], c:1 },
+    { cat:'sega', q:'¿Cuántas fases tiene el Sonic 1 original?', o:['3','6','9','12'], c:1 },
+    { cat:'sega', q:'¿Qué juego de Sega incluía el famoso "Blast Processing"?', o:['Sonic','Altered Beast','Streets of Rage','Golden Axe'], c:0 },
+    { cat:'sega', q:'¿Cómo se llamaba el rival de Sonic de otro color?', o:['Shadow','Knuckles','Silver','Metal Sonic'], c:1 },
+    { cat:'sega', q:'¿Qué significan las siglas VMU (de Dreamcast)?', o:['Video Memory Unit','Visual Memory Unit','Virtual Memory Unit','Voice Memory Unit'], c:1 },
+
+    // N64 / GameCube
+    { cat:'n64', q:'¿Cuántos botones tenía el mando de N64?', o:['8','10','12','14'], c:1 },
+    { cat:'n64', q:'¿En qué juego de N64 apareció por primera vez Link adulto en 3D?', o:['Majora\'s Mask','Ocarina of Time','Twilight Princess','Wind Waker'], c:1 },
+    { cat:'n64', q:'¿Cómo se llama el rival de Mario en los juegos deportivos de N64?', o:['Wario','Bowser','Luigi','Yoshi'], c:1 },
+    { cat:'n64', q:'¿Qué juego de N64 vendió más copias?', o:['GoldenEye','Mario 64','Mario Kart 64','Super Smash Bros'], c:2 },
+    { cat:'n64', q:'¿Cuántos personajes había en el Super Smash Bros original?', o:['8','10','12','14'], c:2 },
+    { cat:'n64', q:'¿En qué juego de GameCube aparece un pueblo llamado "Hyrule"?', o:['Twilight Princess','Wind Waker','Ocarina of Time','Link to the Past'], c:1 },
+
+    // PC Gaming
+    { cat:'pc', q:'¿Cuál fue el primer videojuego de la historia?', o:['Pong','Spacewar!','Tennis for Two','Space Invaders'], c:2 },
+    { cat:'pc', q:'¿Qué empresa desarrolló el primer Counter-Strike?', o:['Valve','Blizzard','id Software','Epic'], c:0 },
+    { cat:'pc', q:'¿En qué juego de PC se popularizó el género Battle Royale?', o:['Fortnite','PUBG','H1Z1','Minecraft'], c:1 },
+    { cat:'pc', q:'¿Cuál es el juego más vendido de PC de la historia?', o:['Minecraft','World of Warcraft','The Sims','Half-Life'], c:0 },
+    { cat:'pc', q:'¿Qué motor gráfico usa DOOM (1993)?', o:['Unreal','Quake','id Tech 1','Source'], c:2 },
+    { cat:'pc', q:'¿En qué año se lanzó Half-Life?', o:['1996','1997','1998','1999'], c:2 },
+    { cat:'pc', q:'¿Cómo se llama el protagonista de Half-Life?', o:['Gordon Freeman','John Freeman','Freeman Gordon','Alex Vance'], c:0 },
+    { cat:'pc', q:'¿Qué juego popularizó el modding en PC?', o:['DOOM','Quake','Wolfenstein 3D','Duke Nukem'], c:0 },
+
+    // Cultura Retro
+    { cat:'retro', q:'¿Qué significaban las siglas FPS en los juegos de PC?', o:['Frames Per Second','First Person Shooter','Fast Processing System','Fantasy Power Score'], c:1 },
+    { cat:'retro', q:'¿Cuál fue el primer juego en tener scroll lateral?', o:['Super Mario Bros','Defender','Donkey Kong','Pitfall!'], c:1 },
+    { cat:'retro', q:'¿Cómo se llamaba el perro de Duck Hunt?', o:['Rex','Sparky','The Dog','Duke'], c:2 },
+    { cat:'retro', q:'¿Con qué arma empezabas en Castlevania?', o:['Espada','Látigo','Hacha','Cuchillo'], c:1 },
+    { cat:'retro', q:'¿Cuál es el juego más caro jamás vendido en formato físico?', o:['Stadium Events (NES)','Gold Zelda (NES)','Super Mario 3 (NES)','Earthbound (SNES)'], c:0 },
+    { cat:'retro', q:'¿Qué revista de videojuegos fue la más famosa en Argentina?', o:['Club Nintendo','Top Kids','Moai RPG','ExtraPower'], c:0 },
+    { cat:'retro', q:'¿Cuántos bits tenía la SNES?', o:['8','16','32','64'], c:1 },
+    { cat:'retro', q:'¿Cuántos colores podía mostrar la NES simultáneamente?', o:['16','25','52','256'], c:2 }
+];
+
+let currentQuestions = [];
+let currentQ = 0;
+let score = 0;
+let category = 'all';
+let fiftyUsed = false;
+let phoneUsed = false;
+let audienceUsed = false;
+let answering = false;
+
+function shuffle(arr) {
+    for(let i=arr.length-1; i>0; i--) {
+        let j = Math.floor(Math.random()*(i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function showMenu() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('menuScreen').classList.add('active');
+}
+
+function showCategories() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('catScreen').classList.add('active');
+}
+
+function selectCategory(cat, el) {
+    category = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function buildPrizeLadder() {
+    let html = '';
+    for(let i=14; i>=0; i--) {
+        let cls = 'prize-step';
+        if(i === currentQ) cls += ' current';
+        if(MILESTONES.includes(i)) cls += ' milestone';
+        html += `<div class="${cls}">${PRIZES[i]}</div>`;
+    }
+    document.getElementById('prizeLadder').innerHTML = html;
+}
+
+function startGame() {
+    // Filter questions by category
+    let pool = category === 'all' ? [...QUESTIONS] : QUESTIONS.filter(q => q.cat === category);
+    if(pool.length < 15) pool = [...QUESTIONS]; // Fallback
+    currentQuestions = shuffle(pool).slice(0, 15);
+    currentQ = 0;
+    score = 0;
+    fiftyUsed = false;
+    phoneUsed = false;
+    audienceUsed = false;
+    answering = false;
+    
+    document.getElementById('fiftyBtn').className = 'lifeline-btn';
+    document.getElementById('phoneBtn').className = 'lifeline-btn';
+    document.getElementById('audienceBtn').className = 'lifeline-btn';
+    
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('gameScreen').classList.add('active');
+    showQuestion();
+}
+
+function showQuestion() {
+    if(currentQ >= 15) { endGame(true); return; }
+    const q = currentQuestions[currentQ];
+    answering = true;
+    
+    document.getElementById('questionNum').textContent = `Pregunta ${currentQ+1}/15`;
+    document.getElementById('scoreDisplay').textContent = score > 0 ? `$${score.toLocaleString()}` : '$0';
+    document.getElementById('questionText').textContent = q.q;
+    
+    const cats = {nes:'NES/SNES',play:'PlayStation',arcade:'Arcade',sega:'Sega',n64:'N64/GC',pc:'PC Gaming',retro:'Cultura Retro',all:'Todas'};
+    document.getElementById('categoryDisplay').textContent = `📂 ${cats[q.cat] || 'Mixto'}`;
+    
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    const letters = ['A','B','C','D'];
+    q.o.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="letter">${letters[i]}</span>${opt}`;
+        btn.onclick = () => answerQuestion(i);
+        btn.id = `opt${i}`;
+        container.appendChild(btn);
+    });
+    
+    buildPrizeLadder();
+}
+
+function answerQuestion(selected) {
+    if(!answering) return;
+    answering = false;
+    
+    const q = currentQuestions[currentQ];
+    const btns = document.querySelectorAll('.option-btn');
+    btns.forEach(b => b.disabled = true);
+    
+    if(selected === q.c) {
+        btns[selected].classList.add('correct');
+        const prizeMap = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000];
+        score = prizeMap[currentQ];
+        document.getElementById('scoreDisplay').textContent = `$${score.toLocaleString()}`;
+        
+        if(currentQ === 14) {
+            setTimeout(() => endGame(true), 1000);
+        } else {
+            setTimeout(() => {
+                currentQ++;
+                showQuestion();
+            }, 1200);
+        }
+    } else {
+        btns[selected].classList.add('wrong');
+        btns[q.c].classList.add('correct');
+        
+        // Get safe prize (last milestone reached)
+        let safeScore = 0;
+        for(let i=currentQ-1; i>=0; i--) {
+            if(MILESTONES.includes(i)) {
+                safeScore = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000][i];
+                break;
+            }
+        }
+        score = safeScore;
+        
+        setTimeout(() => {
+            endGame(false);
+        }, 2000);
+    }
+}
+
+function useFifty() {
+    if(fiftyUsed || !answering) return;
+    fiftyUsed = true;
+    document.getElementById('fiftyBtn').classList.add('used');
+    
+    const q = currentQuestions[currentQ];
+    let wrongs = q.o.map((_,i) => i).filter(i => i !== q.c);
+    shuffle(wrongs);
+    const toRemove = wrongs.slice(0, 2);
+    
+    toRemove.forEach(i => {
+        const btn = document.getElementById(`opt${i}`);
+        if(btn) btn.style.opacity = '0.3';
+    });
+}
+
+function usePhone() {
+    if(phoneUsed || !answering) return;
+    phoneUsed = true;
+    document.getElementById('phoneBtn').classList.add('used');
+    
+    const q = currentQuestions[currentQ];
+    // 70% chance to give correct answer
+    const giveCorrect = Math.random() < 0.7;
+    const hint = giveCorrect ? q.o[q.c] : q.o[(q.c + 1 + Math.floor(Math.random()*3)) % 4];
+    
+    alert(`📞 *Timbre!* Tu amigo gamer dice:\n"Mirá, estoy casi seguro que es... ${hint}"`);
+}
+
+function useAudience() {
+    if(audienceUsed || !answering) return;
+    audienceUsed = true;
+    document.getElementById('audienceBtn').classList.add('used');
+    
+    const q = currentQuestions[currentQ];
+    const correctPct = 55 + Math.floor(Math.random() * 35);
+    let remaining = 100 - correctPct;
+    let dist = [];
+    for(let i=0; i<4; i++) {
+        if(i === q.c) {
+            dist.push(correctPct);
+        } else {
+            let p = Math.floor(remaining / (3 - dist.filter((_,j)=>j!==q.c).length));
+            dist.push(p);
+            remaining -= p;
+        }
+    }
+    
+    alert(`👥 *El público votó:*\n\n${q.o.map((o,i) => `  ${['A','B','C','D'][i]}) ${o}: ${dist[i]}%`).join('\n')}`);
+}
+
+function endGame(won) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('resultScreen').classList.add('active');
+    
+    if(won) {
+        document.getElementById('resultIcon').textContent = '🏆';
+        document.getElementById('resultTitle').textContent = '¡FELICIDADES!';
+        document.getElementById('resultSubtitle').textContent = '¡Te convertiste en el Millonario Gamer!';
+    } else {
+        document.getElementById('resultIcon').textContent = '💔';
+        document.getElementById('resultTitle').textContent = '¡Fallaste!';
+        document.getElementById('resultSubtitle').textContent = 'Te llevás un premio seguro:';
+    }
+    document.getElementById('finalScore').textContent = `$${score.toLocaleString()}`;
+    document.getElementById('resultDetail').textContent = `Respondiste ${currentQ + (won?1:0)} preguntas`;
+}
+
+showMenu();
+</script>
+</body>
+</html>
