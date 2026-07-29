@@ -270,6 +270,59 @@ body {
     .question-box p { font-size: 1em; }
     .prize-ladder { display: none; }
 }
+
+/* MODAL (reemplaza alert() nativo, que el WebView no muestra) */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: linear-gradient(160deg, #1b2148, #0a0a2e);
+    border: 2px solid #ffd700;
+    border-radius: 16px;
+    padding: 25px;
+    max-width: 380px;
+    width: 85%;
+    box-shadow: 0 0 40px rgba(255,215,0,0.25);
+}
+.modal-box h3 {
+    color: #ffd700;
+    margin-bottom: 12px;
+    font-size: 1.2em;
+}
+.modal-box .modal-content {
+    color: white;
+    font-size: 1em;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+.modal-bar-row {
+    display: flex;
+    align-items: center;
+    margin: 6px 0;
+    font-size: 0.9em;
+    color: #ccc;
+}
+.modal-bar-label { width: 30px; flex-shrink: 0; }
+.modal-bar-track {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    height: 16px;
+    overflow: hidden;
+    margin: 0 8px;
+}
+.modal-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+.modal-box .btn { margin: 0; }
 </style>
 </head>
 <body>
@@ -349,6 +402,15 @@ body {
     <button class="btn btn-play" onclick="showMenu()">🔄 JUGAR DE NUEVO</button>
 </div>
 
+</div>
+
+<!-- MODAL (reemplaza alert(), que el WebView no muestra) -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <h3 id="modalTitle"></h3>
+        <div class="modal-content" id="modalContent"></div>
+        <button class="btn btn-play" onclick="closeModal()">OK</button>
+    </div>
 </div>
 
 <script>try{
@@ -588,6 +650,18 @@ function soundLose() {
 }
 // ===== FIN SOUND ENGINE =====
 
+// ===== MODAL (reemplaza alert(), que el WebView no muestra) =====
+function showModal(title, html) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalContent').innerHTML = html;
+    document.getElementById('modalOverlay').classList.add('active');
+}
+function closeModal() {
+    soundClick();
+    document.getElementById('modalOverlay').classList.remove('active');
+}
+// ===== FIN MODAL =====
+
 function shuffle(arr) {
     for(let i=arr.length-1; i>0; i--) {
         let j = Math.floor(Math.random()*(i+1));
@@ -747,7 +821,7 @@ function usePhone() {
     const giveCorrect = Math.random() < 0.7;
     const hint = giveCorrect ? q.o[q.c] : q.o[(q.c + 1 + Math.floor(Math.random()*3)) % 4];
     
-    alert(`📞 *Timbre!* Tu amigo gamer dice:\n"Mirá, estoy casi seguro que es... ${hint}"`);
+    showModal('📞 ¡Timbre!', `Tu amigo gamer dice:<br><br>"Mirá, estoy casi seguro que es... <b>${hint}</b>"`);
 }
 
 function useAudience() {
@@ -770,7 +844,14 @@ function useAudience() {
         }
     }
     
-    alert(`👥 *El público votó:*\n\n${q.o.map((o,i) => `  ${['A','B','C','D'][i]}) ${o}: ${dist[i]}%`).join('\n')}`);
+    const letters = ['A','B','C','D'];
+    const barsHtml = q.o.map((o,i) => `
+        <div class="modal-bar-row">
+            <span class="modal-bar-label">${letters[i]}</span>
+            <div class="modal-bar-track"><div class="modal-bar-fill" style="width:${dist[i]}%"></div></div>
+            <span>${dist[i]}%</span>
+        </div>`).join('');
+    showModal('👥 El público votó', barsHtml);
 }
 
 function endGame(won) {
