@@ -2,13 +2,13 @@
 <resources>
     <color name="splash_bg">#0a0a2e</color>
     
-    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/splash_bg</item>
         <item name="android:statusBarColor">#0a0a2e</item>
         <item name="android:navigationBarColor">#0a0a2e</item>
     </style>
 
-    <style name="SplashTheme" parent="android:Theme.Material.NoActionBar">
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/splash_bg</item>
         <item name="android:statusBarColor">#0a0a2e</item>
         <item name="android:navigationBarColor">#0a0a2e</item>
