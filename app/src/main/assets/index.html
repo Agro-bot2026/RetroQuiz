@@ -336,6 +336,7 @@ body {
     <div class="subtitle">🏆 El Juego del Millón Gamer</div>
     <button class="btn btn-play" onclick="showCategories()">🎯 JUGAR</button>
     <button class="btn btn-categories" onclick="showCategories()">📂 CATEGORÍAS</button>
+    <button class="btn" style="background:linear-gradient(135deg,#00c9a7,#0089ba);color:white" onclick="showCustomGame()">🤖 JUEGO ESPECÍFICO (IA)</button>
 </div>
 
 <!-- CATEGORIES -->
@@ -370,6 +371,19 @@ body {
         </div>
         <button class="btn btn-play" onclick="startGame()" style="margin-top:15px">✅ EMPEZAR</button>
         <button class="btn btn-categories" onclick="showMenu()" style="background:#333">↩ VOLVER</button>
+    </div>
+</div>
+
+<!-- CUSTOM GAME (preguntas generadas por IA para un juego especifico) -->
+<div id="customScreen" class="screen">
+    <div class="menu-screen" style="padding-top:30px">
+        <h2 style="color:white;margin-bottom:10px;font-size:1.2em">¿QUÉ JUEGO QUERÉS JUGAR?</h2>
+        <p style="color:#888;font-size:0.85em;margin-bottom:15px">Escribí cualquier videojuego y generamos 15 preguntas sobre él</p>
+        <input type="text" id="customGameInput" placeholder="Ej: Resident Evil 4"
+            style="width:100%;padding:15px;border-radius:12px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:white;font-size:1em;margin-bottom:15px;text-align:center;box-sizing:border-box">
+        <button class="btn btn-play" id="customSearchBtn" onclick="searchCustomGame()">🔍 BUSCAR PREGUNTAS</button>
+        <button class="btn btn-categories" onclick="showMenu()" style="background:#333">↩ VOLVER</button>
+        <div id="customStatus" style="color:#ffd700;margin-top:15px;font-size:0.9em;min-height:20px"></div>
     </div>
 </div>
 
@@ -682,6 +696,58 @@ function showCategories() {
     document.getElementById('catScreen').classList.add('active');
 }
 
+// ===== JUEGO ESPECIFICO (IA) =====
+const CUSTOM_API_URL = 'https://retroquiz-api.charly-tricks.dev/api/questions';
+
+function showCustomGame() {
+    soundClick();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('customScreen').classList.add('active');
+    document.getElementById('customStatus').textContent = '';
+    document.getElementById('customGameInput').value = '';
+}
+
+async function searchCustomGame() {
+    const input = document.getElementById('customGameInput');
+    const gameName = input.value.trim();
+    const statusEl = document.getElementById('customStatus');
+    const btn = document.getElementById('customSearchBtn');
+
+    if(!gameName) {
+        statusEl.style.color = '#ff6b6b';
+        statusEl.textContent = 'Escribí el nombre de un juego primero';
+        return;
+    }
+
+    soundClick();
+    btn.disabled = true;
+    statusEl.style.color = '#ffd700';
+    statusEl.textContent = '⏳ Generando preguntas... (puede tardar unos segundos la primera vez)';
+
+    try {
+        const res = await fetch(CUSTOM_API_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({game: gameName})
+        });
+        if(!res.ok) throw new Error('server-error');
+        const data = await res.json();
+        if(!data.questions || data.questions.length < 5) throw new Error('few-questions');
+
+        statusEl.style.color = '#00e676';
+        statusEl.textContent = `✅ ${data.questions.length} preguntas listas sobre ${data.game}!`;
+        setTimeout(() => {
+            btn.disabled = false;
+            beginGame(shuffle([...data.questions]).slice(0, 15));
+        }, 700);
+    } catch(e) {
+        btn.disabled = false;
+        statusEl.style.color = '#ff6b6b';
+        statusEl.textContent = '❌ No se pudo conectar. Revisá tu internet o probá de nuevo.';
+    }
+}
+// ===== FIN JUEGO ESPECIFICO =====
+
 function selectCategory(cat, el) {
     soundClick();
     category = cat;
@@ -700,12 +766,8 @@ function buildPrizeLadder() {
     document.getElementById('prizeLadder').innerHTML = html;
 }
 
-function startGame() {
-    soundClick();
-    // Filter questions by category
-    let pool = category === 'all' ? [...QUESTIONS] : QUESTIONS.filter(q => q.cat === category);
-    if(pool.length < 15) pool = [...QUESTIONS]; // Fallback
-    currentQuestions = shuffle(pool).slice(0, 15);
+function beginGame(questionsArray) {
+    currentQuestions = questionsArray;
     currentQ = 0;
     score = 0;
     fiftyUsed = false;
@@ -720,6 +782,14 @@ function startGame() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('gameScreen').classList.add('active');
     showQuestion();
+}
+
+function startGame() {
+    soundClick();
+    // Filter questions by category
+    let pool = category === 'all' ? [...QUESTIONS] : QUESTIONS.filter(q => q.cat === category);
+    if(pool.length < 15) pool = [...QUESTIONS]; // Fallback
+    beginGame(shuffle(pool).slice(0, 15));
 }
 
 function showQuestion() {
