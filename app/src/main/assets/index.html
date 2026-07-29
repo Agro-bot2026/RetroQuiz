@@ -718,7 +718,7 @@ function showCustomGame() {
     document.getElementById('customGameInput').value = '';
 }
 
-async function searchCustomGame() {
+window.searchCustomGame = async function searchCustomGame() {
     try {
         const input = document.getElementById('customGameInput');
         const gameName = input.value.trim();
