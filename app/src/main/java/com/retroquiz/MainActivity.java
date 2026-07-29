@@ -1,10 +1,14 @@
 package com.retroquiz;
 
 import android.os.Bundle;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.appcompat.app.AppCompatActivity;
+import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
@@ -21,14 +25,25 @@ public class MainActivity extends AppCompatActivity {
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
         
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                view.loadData("<html><body style='background:#0a0a2e;color:white;padding:40px;text-align:center'><h2>Error</h2><p>" + description + "</p></body></html>", "text/html", "utf-8");
+        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebViewClient(new WebViewClient());
+        
+        // Load HTML from assets
+        try {
+            InputStream is = getAssets().open("index.html");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
             }
-        });
-        webView.loadUrl("file:///android_asset/index.html");
+            reader.close();
+            webView.loadDataWithBaseURL("file:///android_asset/", sb.toString(), "text/html", "UTF-8", null);
+        } catch (Exception e) {
+            webView.loadData("<html><body style='background:#0a0a2e;color:white;padding:40px'><h2>Error: " + e.getMessage() + "</h2></body></html>", "text/html", "utf-8");
+        }
     }
 
     @Override
