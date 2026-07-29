@@ -22,7 +22,12 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                view.loadData("<html><body style='background:#0a0a2e;color:white;padding:40px;text-align:center'><h2>Error</h2><p>" + description + "</p></body></html>", "text/html", "utf-8");
+            }
+        });
         webView.loadUrl("file:///android_asset/index.html");
     }
 
