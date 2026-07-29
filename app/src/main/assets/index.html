@@ -16,7 +16,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .stars {
@@ -380,6 +381,7 @@ body {
         <h2 style="color:white;margin-bottom:10px;font-size:1.2em">¿QUÉ JUEGO QUERÉS JUGAR?</h2>
         <p style="color:#888;font-size:0.85em;margin-bottom:15px">Escribí cualquier videojuego y generamos 15 preguntas sobre él</p>
         <input type="text" id="customGameInput" placeholder="Ej: Resident Evil 4"
+            onfocus="setTimeout(() => this.scrollIntoView({block:'center', behavior:'smooth'}), 300)"
             style="width:100%;padding:15px;border-radius:12px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:white;font-size:1em;margin-bottom:15px;text-align:center;box-sizing:border-box">
         <button class="btn btn-play" id="customSearchBtn" onclick="searchCustomGame()">🔍 BUSCAR PREGUNTAS</button>
         <button class="btn btn-categories" onclick="showMenu()" style="background:#333">↩ VOLVER</button>
