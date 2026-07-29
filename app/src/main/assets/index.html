@@ -678,6 +678,15 @@ function closeModal() {
 }
 // ===== FIN MODAL =====
 
+// ===== CAPTURA GLOBAL DE ERRORES (para verlos en pantalla, sin consola) =====
+window.addEventListener('error', function(e) {
+    try { showModal('⚠️ Error', (e.message || 'Error desconocido') + '<br><small>' + (e.filename||'') + ':' + (e.lineno||'') + '</small>'); } catch(_) {}
+});
+window.addEventListener('unhandledrejection', function(e) {
+    try { showModal('⚠️ Error de conexión', String(e.reason && e.reason.message ? e.reason.message : e.reason)); } catch(_) {}
+});
+// ===== FIN CAPTURA DE ERRORES =====
+
 function shuffle(arr) {
     for(let i=arr.length-1; i>0; i--) {
         let j = Math.floor(Math.random()*(i+1));
@@ -710,31 +719,31 @@ function showCustomGame() {
 }
 
 async function searchCustomGame() {
-    const input = document.getElementById('customGameInput');
-    const gameName = input.value.trim();
-    const statusEl = document.getElementById('customStatus');
-    const btn = document.getElementById('customSearchBtn');
-
-    if(!gameName) {
-        statusEl.style.color = '#ff6b6b';
-        statusEl.textContent = 'Escribí el nombre de un juego primero';
-        return;
-    }
-
-    soundClick();
-    btn.disabled = true;
-    statusEl.style.color = '#ffd700';
-    statusEl.textContent = '⏳ Generando preguntas... (puede tardar unos segundos la primera vez)';
-
     try {
+        const input = document.getElementById('customGameInput');
+        const gameName = input.value.trim();
+        const statusEl = document.getElementById('customStatus');
+        const btn = document.getElementById('customSearchBtn');
+
+        if(!gameName) {
+            statusEl.style.color = '#ff6b6b';
+            statusEl.textContent = 'Escribí el nombre de un juego primero';
+            return;
+        }
+
+        soundClick();
+        btn.disabled = true;
+        statusEl.style.color = '#ffd700';
+        statusEl.textContent = '⏳ Generando preguntas... (puede tardar unos segundos la primera vez)';
+
         const res = await fetch(CUSTOM_API_URL, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({game: gameName})
         });
-        if(!res.ok) throw new Error('server-error');
+        if(!res.ok) throw new Error('Servidor respondió ' + res.status);
         const data = await res.json();
-        if(!data.questions || data.questions.length < 5) throw new Error('few-questions');
+        if(!data.questions || data.questions.length < 5) throw new Error('Muy pocas preguntas generadas');
 
         statusEl.style.color = '#00e676';
         statusEl.textContent = `✅ ${data.questions.length} preguntas listas sobre ${data.game}!`;
@@ -743,9 +752,14 @@ async function searchCustomGame() {
             beginGame(shuffle([...data.questions]).slice(0, 15));
         }, 700);
     } catch(e) {
-        btn.disabled = false;
-        statusEl.style.color = '#ff6b6b';
-        statusEl.textContent = '❌ No se pudo conectar. Revisá tu internet o probá de nuevo.';
+        const btn = document.getElementById('customSearchBtn');
+        const statusEl = document.getElementById('customStatus');
+        if(btn) btn.disabled = false;
+        if(statusEl) {
+            statusEl.style.color = '#ff6b6b';
+            statusEl.textContent = '❌ ' + (e.message || 'No se pudo conectar');
+        }
+        showModal('⚠️ Error al buscar preguntas', String(e.message || e));
     }
 }
 // ===== FIN JUEGO ESPECIFICO =====
