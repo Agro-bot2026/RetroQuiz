@@ -23,35 +23,24 @@ public class MainActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient());
         
-        // Load HTML from assets
         try {
             InputStream is = getAssets().open("index.html");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 sb.append(line).append("\n");
             }
             reader.close();
-            webView.loadDataWithBaseURL("file:///android_asset/", sb.toString(), "text/html", "UTF-8", null);
+            webView.loadDataWithBaseURL("https://localhost/", sb.toString(), "text/html", "UTF-8", null);
         } catch (Exception e) {
-            webView.loadData("<html><body style='background:#0a0a2e;color:white;padding:40px'><h2>Error: " + e.getMessage() + "</h2></body></html>", "text/html", "utf-8");
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
+            String err = e.getMessage() != null ? e.getMessage() : "Unknown error";
+            webView.loadData("<html><body style='background:#0a0a2e;color:white;padding:40px;text-align:center;font-size:18px'><h2>Error</h2><p>" + err + "</p></body></html>", "text/html", "UTF-8");
         }
     }
 }
