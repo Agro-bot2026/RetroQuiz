@@ -110,7 +110,7 @@ body {
     gap: 10px;
 }
 .cat-btn {
-    padding: 20px 10px;
+    padding: 15px 8px;
     border: 2px solid rgba(255,255,255,0.1);
     border-radius: 12px;
     background: rgba(255,255,255,0.05);
@@ -121,15 +121,20 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     font-size: 0.9em;
-    min-height: 80px;
+    min-height: 85px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+}
+.cat-btn .cat-label, .cat-btn .emoji {
+    white-space: normal;
+    word-break: break-word;
 }
 .cat-btn:hover { transform: scale(1.05); }
 .cat-btn:active { transform: scale(0.95); }
-.cat-btn .cat-label { font-weight: bold; font-size: 1.05em; text-shadow: 0 2px 8px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.9); }
-.cat-btn .emoji { font-size: 2em; display: block; margin-bottom: 5px; text-shadow: 0 2px 6px rgba(0,0,0,0.8); }
+.cat-btn .cat-label { font-weight: bold; font-size: 0.85em; line-height: 1.25; text-shadow: 0 2px 8px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.9); }
+.cat-btn .emoji { font-size: 1.6em; display: block; margin-bottom: 5px; text-shadow: 0 2px 6px rgba(0,0,0,0.8); }
 .cat-btn.selected {
     border-color: #ffd700;
     box-shadow: 0 0 0 2px rgba(255,215,0,0.4) inset;
@@ -358,7 +363,7 @@ body {
             <div class="cat-btn" data-cat="nes" onclick="selectCategory('nes',this)" style="background-image:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.65)), url('https://images.igdb.com/igdb/image/upload/t_1080p/ar3nay.jpg')">
                 <span class="cat-label">🕹️ NES / SNES</span>
             </div>
-            <div class="cat-btn" data-cat="play" onclick="selectCategory('play',this)" style="background-image:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.65)), url('https://images.igdb.com/igdb/image/upload/t_1080p/scizii.jpg')">
+            <div class="cat-btn" data-cat="play" onclick="selectCategory('play',this)" style="background-image:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.65)), url('https://images.igdb.com/igdb/image/upload/t_1080p/ar1xhu.jpg')">
                 <span class="cat-label">🎯 PlayStation</span>
             </div>
             <div class="cat-btn" data-cat="arcade" onclick="selectCategory('arcade',this)" style="background-image:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.65)), url('https://images.igdb.com/igdb/image/upload/t_1080p/ar1oi4.jpg')">
