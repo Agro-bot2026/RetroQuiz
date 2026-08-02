@@ -7,6 +7,11 @@
         android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/SplashTheme">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4478373683231277~3253868774"/>
+
         <activity android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize"
