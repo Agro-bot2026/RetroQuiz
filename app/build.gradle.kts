@@ -10,8 +10,8 @@ android {
         applicationId = "com.retroquiz"
         minSdk = 21
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 4
+        versionName = "1.0.3"
     }
 
     signingConfigs {
