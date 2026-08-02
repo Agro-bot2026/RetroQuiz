@@ -149,26 +149,47 @@ body {
     overflow: hidden;
     background: #000;
     border: 1px solid rgba(255,255,255,0.1);
+    touch-action: pan-y;
 }
-.hero-carousel-track {
-    position: absolute;
-    top: 0; left: 0;
+.category-hero img#heroImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.hero-fallback {
+    width: 100%;
     height: 100%;
     display: flex;
-    will-change: transform;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5em;
 }
-.hero-carousel-track img {
-    height: 100%;
-    width: 220px;
-    object-fit: cover;
-    flex-shrink: 0;
+.hero-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 1.3em;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
 }
-.hero-carousel-track.scrolling {
-    animation: heroScroll 45s linear infinite;
-}
-@keyframes heroScroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
+.hero-nav-left { left: 8px; }
+.hero-nav-right { right: 8px; }
+.hero-counter {
+    position: absolute;
+    bottom: 8px; right: 10px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    font-size: 0.7em;
+    padding: 3px 8px;
+    border-radius: 10px;
+    z-index: 2;
 }
 .hero-overlay {
     position: absolute;
@@ -447,7 +468,11 @@ body {
         <h2 style="color:white;margin-bottom:10px;font-size:1.1em">ELEGÍ TU CATEGORÍA</h2>
 
         <div class="category-hero" id="categoryHero">
-            <div class="hero-carousel-track" id="heroCarouselTrack"></div>
+            <img id="heroImage" src="" alt="" style="display:none">
+            <div class="hero-fallback" id="heroFallback" style="display:none">🎮</div>
+            <button class="hero-nav-btn hero-nav-left" id="heroNavLeft" onclick="prevImage(event)">‹</button>
+            <button class="hero-nav-btn hero-nav-right" id="heroNavRight" onclick="nextImage(event)">›</button>
+            <div class="hero-counter" id="heroCounter"></div>
             <div class="hero-overlay"></div>
         </div>
 
@@ -867,7 +892,7 @@ window.searchCustomGame = async function searchCustomGame() {
 }
 // ===== FIN JUEGO ESPECIFICO =====
 
-const CAROUSEL_IMAGES = {"nes": [{"titulo": "Super Mario Bros.", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar5j7d.jpg"}, {"titulo": "Bomberman", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/yk3iilrsdp4vzdjctfiw.jpg"}, {"titulo": "Ice Climber", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar4lpu.jpg"}, {"titulo": "Adventure Island", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1sch.jpg"}, {"titulo": "Battle City", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/pd1gdodxo5gcmdxkvvh5.jpg"}, {"titulo": "Pac-Man", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1oh6.jpg"}, {"titulo": "Donkey Kong", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar3p4g.jpg"}, {"titulo": "Mappy", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar21y4.jpg"}, {"titulo": "Galaga", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar2dc7.jpg"}, {"titulo": "Double Dragon", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scuz1h.jpg"}], "play": [{"titulo": "Grand Theft Auto: San Andreas", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/arqzf.jpg"}, {"titulo": "Need for Speed: Most Wanted", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scq676.jpg"}, {"titulo": "God of War", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/tvl9vif6lw8sckkqyaj7.jpg"}, {"titulo": "Resident Evil 4", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/g9viaq0j28chyrvr1qev.jpg"}, {"titulo": "Darkwatch", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1lkf.jpg"}, {"titulo": "Rule of Rose", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/r8cgtsalp2flqld0vjlo.jpg"}, {"titulo": "Fatal Frame", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/lee7qkbgxjvav2wop4nv.jpg"}, {"titulo": "Manhunt", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/arfx5.jpg"}, {"titulo": "Burnout 3: Takedown", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar694q.jpg"}, {"titulo": "Killzone", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sch21x.jpg"}], "arcade": [{"titulo": "Teenage Mutant Ninja Turtles", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar3aci.jpg"}, {"titulo": "Snow Bros.", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar5xa4.jpg"}, {"titulo": "X-Men", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sc88al.jpg"}, {"titulo": "Street Fighter II", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1oi4.jpg"}, {"titulo": "Mortal Kombat", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar28n3.jpg"}, {"titulo": "The King of Fighters 2002", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/fv3wwrucjlp38xiqfhb9.jpg"}, {"titulo": "Contra", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sc14d8e.jpg"}, {"titulo": "Galaxian", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/xlqnqtzp5xisvonqb2pa.jpg"}, {"titulo": "Rampage", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/co7mfk.jpg"}, {"titulo": "Space Invaders", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sc6d5m.jpg"}], "sega": [{"titulo": "Sonic the Hedgehog", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar2qb5.jpg"}, {"titulo": "Ecco the Dolphin", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar30ip.jpg"}, {"titulo": "Streets of Rage 2", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1oxb.jpg"}, {"titulo": "Golden Axe", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scgwx2.jpg"}, {"titulo": "Shinobi", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1kif.jpg"}, {"titulo": "Altered Beast", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar5mu8.jpg"}, {"titulo": "Phantasy Star IV: The End of the Millennium", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar30j7.jpg"}, {"titulo": "Virtua Fighter", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sc894q.jpg"}, {"titulo": "Shenmue", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar5zzb.jpg"}, {"titulo": "Crazy Taxi", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar7mh.jpg"}], "n64": [{"titulo": "Super Mario 64", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar221h.jpg"}, {"titulo": "GoldenEye 007", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar686z.jpg"}, {"titulo": "The Legend of Zelda: Ocarina of Time", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1t7u.jpg"}, {"titulo": "Super Smash Bros.", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar14kq.jpg"}, {"titulo": "Mario Kart 64", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar2dzh.jpg"}, {"titulo": "Banjo-Kazooie", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar7ut.jpg"}, {"titulo": "Perfect Dark", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar21zm.jpg"}, {"titulo": "Pikmin", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar21zn.jpg"}, {"titulo": "Metroid Prime", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/a0lmffyqmm3wqgzdistt.jpg"}, {"titulo": "Star Fox 64", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1vrx.jpg"}], "pc": [{"titulo": "Quake", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/arhee.jpg"}, {"titulo": "Doom", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar3m00.jpg"}, {"titulo": "StarCraft", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sc6vlu.jpg"}, {"titulo": "Diablo II", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar1vsy.jpg"}, {"titulo": "Minecraft", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar4nm5.jpg"}, {"titulo": "Half-Life 2", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar667y.jpg"}, {"titulo": "Counter-Strike", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/arpv4.jpg"}, {"titulo": "Age of Empires II: The Age of Kings", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar7qh.jpg"}, {"titulo": "The Sims", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ary48.jpg"}, {"titulo": "World of Warcraft", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/ar583d.jpg"}], "retro": [{"titulo": "Tetris", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scq09z.jpg"}, {"titulo": "Pong", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/addqqwix9t6wx9dxipwy.jpg"}, {"titulo": "Frogger", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/co7mp0.jpg"}, {"titulo": "Asteroids", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/sctdnm.jpg"}, {"titulo": "Centipede", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/co7uel.jpg"}, {"titulo": "Dig Dug", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scj0ss.jpg"}, {"titulo": "Q*bert", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scvzpz.jpg"}, {"titulo": "Missile Command", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scbscp.jpg"}, {"titulo": "Defender", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/scpou9.jpg"}, {"titulo": "Joust", "url": "https://images.igdb.com/igdb/image/upload/t_1080p/co7mf4.jpg"}]};
+const CAROUSEL_IMAGES = {"nes": ["https://retroquiz-api.charly-tricks.dev/static/carousel/nes/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/nes/10.jpg"], "play": ["https://retroquiz-api.charly-tricks.dev/static/carousel/play/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/play/10.jpg"], "arcade": ["https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/arcade/10.jpg"], "sega": ["https://retroquiz-api.charly-tricks.dev/static/carousel/sega/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/sega/10.jpg"], "n64": ["https://retroquiz-api.charly-tricks.dev/static/carousel/n64/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/n64/10.jpg"], "pc": ["https://retroquiz-api.charly-tricks.dev/static/carousel/pc/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/pc/10.jpg"], "retro": ["https://retroquiz-api.charly-tricks.dev/static/carousel/retro/01.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/02.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/03.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/04.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/05.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/06.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/07.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/08.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/09.jpg", "https://retroquiz-api.charly-tricks.dev/static/carousel/retro/10.jpg"]};
 
 const CATEGORY_ORDER = ['all','nes','play','arcade','sega','n64','pc','retro'];
 const CATEGORY_NAMES = {all:'Todas',nes:'NES / SNES',play:'PlayStation',arcade:'Arcade',sega:'Sega',n64:'N64 / GC',pc:'PC Gaming',retro:'Cultura Retro'};
@@ -884,40 +909,90 @@ const CATEGORY_INFO = {
 
 let currentCategoryIndex = 0;
 
+let currentImageIndex = 0;
+
 function renderCategoryHero() {
     const cat = CATEGORY_ORDER[currentCategoryIndex];
     category = cat;
+    currentImageIndex = 0;
 
     document.getElementById('categoryTitle').textContent = CATEGORY_NAMES[cat];
     document.getElementById('categoryInfo').textContent = CATEGORY_INFO[cat];
 
-    const hero = document.getElementById('categoryHero');
-    const track = document.getElementById('heroCarouselTrack');
-    track.classList.remove('scrolling');
-    track.innerHTML = '';
-
-    if (cat === 'all' || !CAROUSEL_IMAGES[cat]) {
-        hero.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.22), rgba(255,140,0,0.22))';
-        hero.style.display = 'flex';
-        hero.style.alignItems = 'center';
-        hero.style.justifyContent = 'center';
-        track.style.position = 'static';
-        track.innerHTML = '<span style="font-size:3.5em">🎮</span>';
-    } else {
-        hero.style.background = '#000';
-        hero.style.display = 'block';
-        track.style.position = 'absolute';
-        const images = CAROUSEL_IMAGES[cat].filter(g => g);
-        const doubled = images.concat(images);
-        track.innerHTML = doubled.map(g => `<img src="${g.url}" loading="lazy" alt="${g.titulo}">`).join('');
-        void track.offsetWidth;
-        track.classList.add('scrolling');
-    }
-
     document.querySelectorAll('.category-dot').forEach((d, i) => {
         d.classList.toggle('active', i === currentCategoryIndex);
     });
+
+    renderHeroImage();
 }
+
+function renderHeroImage() {
+    const cat = CATEGORY_ORDER[currentCategoryIndex];
+    const img = document.getElementById('heroImage');
+    const fallback = document.getElementById('heroFallback');
+    const counter = document.getElementById('heroCounter');
+    const navLeft = document.getElementById('heroNavLeft');
+    const navRight = document.getElementById('heroNavRight');
+    const hero = document.getElementById('categoryHero');
+
+    const images = CAROUSEL_IMAGES[cat];
+
+    if (cat === 'all' || !images || images.length === 0) {
+        hero.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.22), rgba(255,140,0,0.22))';
+        img.style.display = 'none';
+        fallback.style.display = 'flex';
+        counter.style.display = 'none';
+        navLeft.style.display = 'none';
+        navRight.style.display = 'none';
+    } else {
+        hero.style.background = '#000';
+        fallback.style.display = 'none';
+        img.style.display = 'block';
+        img.src = images[currentImageIndex];
+        counter.style.display = 'block';
+        counter.textContent = `${currentImageIndex + 1}/${images.length}`;
+        navLeft.style.display = 'flex';
+        navRight.style.display = 'flex';
+    }
+}
+
+function prevImage(e) {
+    if (e) e.stopPropagation();
+    soundClick();
+    const cat = CATEGORY_ORDER[currentCategoryIndex];
+    const images = CAROUSEL_IMAGES[cat];
+    if (!images) return;
+    currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+    renderHeroImage();
+}
+
+function nextImage(e) {
+    if (e) e.stopPropagation();
+    soundClick();
+    const cat = CATEGORY_ORDER[currentCategoryIndex];
+    const images = CAROUSEL_IMAGES[cat];
+    if (!images) return;
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    renderHeroImage();
+}
+
+// Deslizar con el dedo sobre la imagen grande
+(function setupHeroSwipe() {
+    let touchStartX = 0;
+    document.addEventListener('DOMContentLoaded', attachSwipe);
+    function attachSwipe() {
+        const hero = document.getElementById('categoryHero');
+        if (!hero) return;
+        hero.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive:true});
+        hero.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(dx) > 40) {
+                if (dx < 0) nextImage(); else prevImage();
+            }
+        }, {passive:true});
+    }
+    attachSwipe();
+})();
 
 function prevCategory() {
     soundClick();
