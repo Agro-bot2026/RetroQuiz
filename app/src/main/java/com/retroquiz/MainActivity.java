@@ -33,6 +33,10 @@ public class MainActivity extends AppCompatActivity {
     private RewardedAd rewardedAd;
     private boolean launchAdShown = false;
 
+    private String interstitialStatus = "Sin intentar";
+    private String appOpenStatus = "Sin intentar";
+    private String rewardedStatus = "Sin intentar";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,10 +93,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded(InterstitialAd ad) {
                 interstitialAd = ad;
+                interstitialStatus = "OK - cargado correctamente";
             }
             @Override
             public void onAdFailedToLoad(LoadAdError loadAdError) {
                 interstitialAd = null;
+                interstitialStatus = "ERROR: " + loadAdError.getMessage() + " (codigo " + loadAdError.getCode() + ")";
             }
         });
     }
@@ -122,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded(AppOpenAd ad) {
                 appOpenAd = ad;
+                appOpenStatus = "OK - cargado correctamente";
                 if (!launchAdShown) {
                     launchAdShown = true;
                     showAppOpenAdIfReady();
@@ -130,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdFailedToLoad(LoadAdError loadAdError) {
                 appOpenAd = null;
+                appOpenStatus = "ERROR: " + loadAdError.getMessage() + " (codigo " + loadAdError.getCode() + ")";
             }
         });
     }
@@ -157,10 +165,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded(RewardedAd ad) {
                 rewardedAd = ad;
+                rewardedStatus = "OK - cargado correctamente";
             }
             @Override
             public void onAdFailedToLoad(LoadAdError loadAdError) {
                 rewardedAd = null;
+                rewardedStatus = "ERROR: " + loadAdError.getMessage() + " (codigo " + loadAdError.getCode() + ")";
             }
         });
     }
@@ -170,6 +180,18 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void showAd() {
             runOnUiThread(() -> showInterstitialIfReady());
+        }
+
+        @JavascriptInterface
+        public void getAdStatus(final String jsCallback) {
+            runOnUiThread(() -> {
+                String json = "{"
+                    + "\"interstitial\":\"" + interstitialStatus.replace("\"", "'") + "\","
+                    + "\"appOpen\":\"" + appOpenStatus.replace("\"", "'") + "\","
+                    + "\"rewarded\":\"" + rewardedStatus.replace("\"", "'") + "\""
+                    + "}";
+                webView.evaluateJavascript(jsCallback + "(" + json + ")", null);
+            });
         }
 
         @JavascriptInterface

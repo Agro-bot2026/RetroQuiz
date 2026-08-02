@@ -460,6 +460,7 @@ body {
     <button class="btn btn-play" onclick="showCategories()">🎯 JUGAR</button>
     <button class="btn btn-categories" onclick="showCategories()">📂 CATEGORÍAS</button>
     <button class="btn" style="background:linear-gradient(135deg,#00c9a7,#0089ba);color:white" onclick="showCustomGame()">🤖 JUEGO ESPECÍFICO (IA)</button>
+    <p onclick="checkAdStatus()" style="color:#666;font-size:0.75em;margin-top:10px;text-decoration:underline;cursor:pointer">🔧 Ver estado de anuncios</p>
 </div>
 
 <!-- CATEGORIES -->
@@ -820,6 +821,7 @@ function shuffle(arr) {
 
 function showMenu() {
     soundClick();
+    stopHeroAutoplay();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('menuScreen').classList.add('active');
 }
@@ -908,8 +910,26 @@ const CATEGORY_INFO = {
 };
 
 let currentCategoryIndex = 0;
-
 let currentImageIndex = 0;
+let heroAutoTimer = null;
+
+function startHeroAutoplay() {
+    stopHeroAutoplay();
+    const cat = CATEGORY_ORDER[currentCategoryIndex];
+    const images = CAROUSEL_IMAGES[cat];
+    if (!images || images.length <= 1) return;
+    heroAutoTimer = setInterval(() => {
+        currentImageIndex = (currentImageIndex + 1) % images.length;
+        renderHeroImage();
+    }, 5000);
+}
+
+function stopHeroAutoplay() {
+    if (heroAutoTimer) {
+        clearInterval(heroAutoTimer);
+        heroAutoTimer = null;
+    }
+}
 
 function renderCategoryHero() {
     const cat = CATEGORY_ORDER[currentCategoryIndex];
@@ -924,6 +944,7 @@ function renderCategoryHero() {
     });
 
     renderHeroImage();
+    startHeroAutoplay();
 }
 
 function renderHeroImage() {
@@ -964,6 +985,7 @@ function prevImage(e) {
     if (!images) return;
     currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
     renderHeroImage();
+    startHeroAutoplay();
 }
 
 function nextImage(e) {
@@ -974,6 +996,7 @@ function nextImage(e) {
     if (!images) return;
     currentImageIndex = (currentImageIndex + 1) % images.length;
     renderHeroImage();
+    startHeroAutoplay();
 }
 
 // Deslizar con el dedo sobre la imagen grande
@@ -1050,6 +1073,7 @@ function beginGame(questionsArray) {
 
 function startGame() {
     soundClick();
+    stopHeroAutoplay();
     // Filter questions by category
     let pool = category === 'all' ? [...QUESTIONS] : QUESTIONS.filter(q => q.cat === category);
     if(pool.length < 15) pool = [...QUESTIONS]; // Fallback
@@ -1147,6 +1171,24 @@ function showExplanationBox(q, wasCorrect) {
         currentQ++;
         showQuestion();
     };
+}
+
+function checkAdStatus() {
+    soundClick();
+    if (!(window.Android && window.Android.getAdStatus)) {
+        showModal('🔧 Estado de anuncios', 'El puente con Android no está disponible en este dispositivo.');
+        return;
+    }
+    window.onAdStatusResult = function(status) {
+        const html = `
+            <div style="text-align:left;font-size:0.85em">
+                <p style="margin-bottom:8px"><b>Intersticial (IA):</b><br>${status.interstitial}</p>
+                <p style="margin-bottom:8px"><b>Inicio de app:</b><br>${status.appOpen}</p>
+                <p><b>Recompensado (revivir):</b><br>${status.rewarded}</p>
+            </div>`;
+        showModal('🔧 Estado de anuncios', html);
+    };
+    window.Android.getAdStatus('onAdStatusResult');
 }
 
 window.tryRevive = function tryRevive() {
