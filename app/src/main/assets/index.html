@@ -460,6 +460,7 @@ body {
     <button class="btn btn-play" onclick="showCategories()">🎯 JUGAR</button>
     <button class="btn btn-categories" onclick="showCategories()">📂 CATEGORÍAS</button>
     <button class="btn" style="background:linear-gradient(135deg,#00c9a7,#0089ba);color:white" onclick="showCustomGame()">🤖 JUEGO ESPECÍFICO (IA)</button>
+    <button class="btn" style="background:linear-gradient(135deg,#f5a623,#f76b1c);color:white" onclick="showLeaderboard()">🏆 RANKING GLOBAL</button>
     <p onclick="checkAdStatus()" style="color:#666;font-size:0.75em;margin-top:10px;text-decoration:underline;cursor:pointer">🔧 Ver estado de anuncios</p>
 </div>
 
@@ -538,7 +539,23 @@ body {
     <p id="resultSubtitle">Ganaste:</p>
     <div class="final-score" id="finalScore">$1.000.000</div>
     <p id="resultDetail"></p>
+    <div id="submitScoreBox" style="display:none;margin-top:15px">
+        <input type="text" id="usernameInput" placeholder="Tu nombre" maxlength="20" style="width:100%;padding:12px;border-radius:8px;border:2px solid rgba(255,215,0,0.3);background:rgba(255,255,255,0.06);color:white;margin-bottom:10px;text-align:center;font-size:1em">
+        <button class="btn" style="background:linear-gradient(135deg,#f5a623,#f76b1c);color:white" onclick="submitScore()">🏆 ENVIAR AL RANKING</button>
+        <button class="btn" style="background:linear-gradient(135deg,#4285F4,#34A853);color:white" onclick="submitToPlayGames()">🎮 ENVIAR A GOOGLE PLAY</button>
+        <div id="submitStatus" style="color:#ffd700;margin-top:8px;font-size:0.85em;min-height:18px"></div>
+    </div>
+    <button class="btn" style="background:#333" onclick="shareMyScore()">📤 COMPARTIR RESULTADO</button>
     <button class="btn btn-play" onclick="showMenu()">🔄 JUGAR DE NUEVO</button>
+</div>
+
+<div id="leaderboardScreen" class="screen">
+    <div class="menu-screen" style="padding-top:30px">
+        <h2 style="color:#ffd700;margin-bottom:15px">🏆 RANKING GLOBAL</h2>
+        <div id="leaderboardList" style="text-align:left;margin-bottom:15px;max-height:60vh;overflow-y:auto"></div>
+        <button class="btn" style="background:linear-gradient(135deg,#4285F4,#34A853);color:white" onclick="showGooglePlayLeaderboard()">🎮 RANKING DE GOOGLE PLAY</button>
+        <button class="btn btn-categories" onclick="showMenu()" style="background:#333">↩ VOLVER</button>
+    </div>
 </div>
 
 </div>
@@ -560,7 +577,7 @@ const PRIZES = [
     '$2.000', '$4.000', '$8.000', '$16.000', '$32.000',
     '$64.000', '$125.000', '$250.000', '$500.000', '$1.000.000'
 ];
-const MILESTONES = [4, 9, 14];
+const MILESTONES = [2, 5, 8, 11, 14];
 
 // ─── QUESTIONS DATABASE ───
 const QUESTIONS = [
@@ -734,6 +751,7 @@ const QUESTIONS = [
 let currentQuestions = [];
 let currentQ = 0;
 let score = 0;
+let safeAccumulatedScore = 0;
 let category = 'all';
 let fiftyUsed = false;
 let phoneUsed = false;
@@ -824,6 +842,108 @@ function showMenu() {
     stopHeroAutoplay();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('menuScreen').classList.add('active');
+}
+
+const LEADERBOARD_API_URL = 'https://retroquiz-api.charly-tricks.dev/api';
+
+function showLeaderboard() {
+    soundClick();
+    stopHeroAutoplay();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('leaderboardScreen').classList.add('active');
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '<p style="color:#888;text-align:center">Cargando...</p>';
+    fetch(LEADERBOARD_API_URL + '/leaderboard')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.leaderboard || data.leaderboard.length === 0) {
+                list.innerHTML = '<p style="color:#888;text-align:center">Todavía no hay puntajes. ¡Sé el primero!</p>';
+                return;
+            }
+            list.innerHTML = data.leaderboard.map((entry, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+                return `<div style="display:flex;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:6px">
+                    <span>${medal} ${entry.username}</span>
+                    <span style="color:#ffd700;font-weight:bold">$${entry.score.toLocaleString()}</span>
+                </div>`;
+            }).join('');
+        })
+        .catch(() => {
+            list.innerHTML = '<p style="color:#ff6b6b;text-align:center">No se pudo cargar el ranking.</p>';
+        });
+}
+
+function submitScore() {
+    soundClick();
+    const input = document.getElementById('usernameInput');
+    const username = input.value.trim();
+    const statusEl = document.getElementById('submitStatus');
+    if (!username) {
+        statusEl.style.color = '#ff6b6b';
+        statusEl.textContent = 'Escribí tu nombre primero';
+        return;
+    }
+    statusEl.style.color = '#ffd700';
+    statusEl.textContent = 'Enviando...';
+    fetch(LEADERBOARD_API_URL + '/leaderboard/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: username, score: score, category: category})
+    })
+    .then(res => res.json())
+    .then(() => {
+        statusEl.style.color = '#00e676';
+        statusEl.textContent = '✅ ¡Puntaje enviado!';
+    })
+    .catch(() => {
+        statusEl.style.color = '#ff6b6b';
+        statusEl.textContent = '❌ No se pudo enviar. Probá de nuevo.';
+    });
+}
+
+function submitToPlayGames() {
+    soundClick();
+    const statusEl = document.getElementById('submitStatus');
+    if (window.Android && window.Android.submitToPlayGamesLeaderboard) {
+        window.Android.submitToPlayGamesLeaderboard(score);
+        if (statusEl) {
+            statusEl.style.color = '#00e676';
+            statusEl.textContent = '✅ Enviado a Google Play Games';
+        }
+    } else {
+        showModal('🎮 Google Play Games', 'No disponible en este dispositivo.');
+    }
+}
+
+function showGooglePlayLeaderboard() {
+    soundClick();
+    if (window.Android && window.Android.showPlayGamesLeaderboard) {
+        window.Android.showPlayGamesLeaderboard();
+    } else {
+        showModal('🎮 Google Play Games', 'No disponible en este dispositivo.');
+    }
+}
+
+function shareMyScore() {
+    soundClick();
+    const finalScoreText = document.getElementById('finalScore').textContent;
+    const message = `🎮 ¡Saqué ${finalScoreText} en RetroQuiz! 🏆\n¿Te animás a superarme?`;
+    if (window.Android && window.Android.shareScore) {
+        window.Android.shareScore(message);
+    } else {
+        showModal('📤 Compartir', 'No se pudo abrir el menú de compartir en este dispositivo.');
+    }
+}
+
+function handleBackPress() {
+    const active = document.querySelector('.screen.active');
+    if (!active || active.id === 'menuScreen') {
+        if (window.Android && window.Android.exitApp) {
+            window.Android.exitApp();
+        }
+        return;
+    }
+    showMenu();
 }
 
 function showCategories() {
@@ -1056,6 +1176,7 @@ function beginGame(questionsArray) {
     currentQuestions = questionsArray;
     currentQ = 0;
     score = 0;
+    safeAccumulatedScore = 0;
     fiftyUsed = false;
     phoneUsed = false;
     audienceUsed = false;
@@ -1122,21 +1243,17 @@ function answerQuestion(selected) {
         soundCorrect();
         btns[selected].classList.add('correct');
         const prizeMap = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000];
-        score = prizeMap[currentQ];
+        score += prizeMap[currentQ];
+        if(MILESTONES.includes(currentQ)) {
+            safeAccumulatedScore = score;
+        }
         document.getElementById('scoreDisplay').textContent = `$${score.toLocaleString()}`;
     } else {
         soundWrong();
         btns[selected].classList.add('wrong');
         btns[q.c].classList.add('correct');
-        
-        let safeScore = 0;
-        for(let i=currentQ-1; i>=0; i--) {
-            if(MILESTONES.includes(i)) {
-                safeScore = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000][i];
-                break;
-            }
-        }
-        score = safeScore;
+        score = safeAccumulatedScore;
+        document.getElementById('scoreDisplay').textContent = `$${score.toLocaleString()}`;
     }
 
     showExplanationBox(q, wasCorrect);
@@ -1298,6 +1415,15 @@ function endGame(won) {
     }
     document.getElementById('finalScore').textContent = `$${score.toLocaleString()}`;
     document.getElementById('resultDetail').textContent = `Respondiste ${currentQ + (won?1:0)} preguntas`;
+
+    const submitBox = document.getElementById('submitScoreBox');
+    if (score > 0) {
+        submitBox.style.display = 'block';
+        document.getElementById('usernameInput').value = '';
+        document.getElementById('submitStatus').textContent = '';
+    } else {
+        submitBox.style.display = 'none';
+    }
 }
 
 showMenu();
